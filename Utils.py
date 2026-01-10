@@ -42,6 +42,9 @@ except OSError:
     subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
     nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
 
+# Increase max_length for large text processing (safe since parser/NER are disabled)
+nlp.max_length = 20000000  # 20 million characters
+
 tqdm = partial(tqdm, position=0, leave=True)
 
 warnings.filterwarnings("ignore")
