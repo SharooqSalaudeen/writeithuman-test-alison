@@ -123,7 +123,7 @@ def main():
     y = np.array(y)
 
     X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(
-        X, y, test_size=args.test_size, random_state=1, shuffle=False, stratify=y)
+        X, y, test_size=args.test_size, random_state=1, shuffle=True, stratify=y)
 
     print('------------', '\n', 'Scaling, Loading, and Shuffling Data')
     Scaler = sklearn.preprocessing.StandardScaler().fit(X_train)
