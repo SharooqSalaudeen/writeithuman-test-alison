@@ -22,6 +22,8 @@ def main():
 
     parser.add_argument('--top_ngrams', '-tng', type=int,
                         help='t, The Number of top Character and POS-ngrams to Retain', default=256)
+    parser.add_argument('--max_chars_per_author', '-mca', type=int,
+                        help='Maximum characters per author for n-gram extraction (0 = unlimited)', default=500000)
     parser.add_argument(
         '--V', '-V', help='V, the set of n-gram lengths to use', default=[1, 2, 3, 4])
 
@@ -86,9 +88,17 @@ def main():
         texts[author] = ' '.join([texts[author], filtered_sentence])
         pos_texts[author] = ''.join([pos_texts[author], row['POS']])
 
+    # Sample texts to avoid memory issues with very large datasets
+    if args.max_chars_per_author > 0:
+        print(
+            f'Sampling up to {args.max_chars_per_author} chars per author for n-gram extraction...')
+        texts = [text[:args.max_chars_per_author] for text in texts]
+        pos_texts = [text[:args.max_chars_per_author] for text in pos_texts]
+
     total = ' '.join(texts)
     pos_total = ''.join(pos_texts)
 
+    print(f'Total text size for n-gram extraction: {len(total):,} characters')
     print('------------', '\n', 'Preprocessing complete!')
     print('------------', '\n', 'Generating Char n-grams...')
 
