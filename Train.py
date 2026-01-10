@@ -21,26 +21,26 @@ def main():
         '--test_size', '-ts', type=float, help='Proportion of data to use for testing', default=0.15)
 
     parser.add_argument('--top_ngrams', '-tng', type=int,
-                        help='t, The Number of top Character and POS-ngrams to Retain', default=256)
+                        help='t, The Number of top Character and POS-ngrams to Retain', default=300)
     parser.add_argument('--max_chars_per_author', '-mca', type=int,
                         help='Maximum characters per author for n-gram extraction (0 = unlimited)', default=200000)
     parser.add_argument(
         '--V', '-V', help='V, the set of n-gram lengths to use', default=[1, 2, 3, 4])
 
     parser.add_argument('--batch_size', '-bs', type=int,
-                        help='Batch Size', default=512)
+                        help='Batch Size', default=256)
     parser.add_argument('--learning_rate', '-lr', type=float,
-                        help='Learning Rate', default=0.01)
+                        help='Learning Rate', default=0.001)
     parser.add_argument(
-        '--epochs', '-e', type=int, help='Number of Training Epochs', default=30)
+        '--epochs', '-e', type=int, help='Number of Training Epochs', default=50)
     parser.add_argument('--weight_decay', '-wd', type=float,
-                        help='Weight Decay Constant', default=0.00)
+                        help='Weight Decay Constant', default=0.0001)
     parser.add_argument('--momentum', '-m', type=float,
                         help='Momentum Constant', default=0.90)
     parser.add_argument('--step', '-s', type=int,
-                        help='Scheduler Step Size', default=3)
+                        help='Scheduler Step Size', default=10)
     parser.add_argument(
-        '--gamma', '-g', type=float, help='Scheduler Gamma Constant', default=0.30)
+        '--gamma', '-g', type=float, help='Scheduler Gamma Constant', default=0.50)
 
     args = parser.parse_args()
 
@@ -159,6 +159,7 @@ def main():
 
     features = [n_grams, pos_n_grams, word_n_grams]
     pickle.dump(features, open(os.path.join(save_path, 'features.pkl'), 'wb'))
+    pickle.dump(Scaler, open(os.path.join(save_path, 'Scaler.pkl'), 'wb'))
 
     model = Model(len(X_train[0]), num_authors)
 
