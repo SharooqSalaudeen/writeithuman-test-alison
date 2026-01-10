@@ -49,7 +49,7 @@ def main():
 
     os.makedirs(save_path)
 
-    with open(args.train, 'r') as reader:
+    with open(args.train, 'r', encoding='utf-8', errors='ignore') as reader:
         lines = [line.partition(' ')
                  for line in reader.readlines() if line.strip()]
         labels = []
