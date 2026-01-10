@@ -156,7 +156,7 @@ def main():
         optimizer, step_size=args.step, gamma=args.gamma)
 
     model = train_and_eval(model, training_set, validation_set, loss_function,
-                           optimizer, scheduler, save_path=save_path, EPOCHS=args.epochs, save_epoch=10)
+                           optimizer, scheduler, epochs=args.epochs, save_path=save_path, save_epoch=10)
 
     torch.save(model.state_dict(), os.path.join(save_path, 'model.pt'))
 
