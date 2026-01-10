@@ -26,25 +26,30 @@ import itertools
 
 from pandas import DataFrame
 
-import nltk
+import spacy
 from nltk import skipgrams
-from nltk import pos_tag
-from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.util import ngrams
-nltk.download('punkt')
-nltk.download('punkt_tab')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('averaged_perceptron_tagger_eng')
-nltk.download('stopwords')
+import nltk
+nltk.download('punkt', quiet=True)
+nltk.download('stopwords', quiet=True)
 
+# Load spaCy model for fast POS tagging
+try:
+    nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
+except OSError:
+    print("Downloading spaCy model...")
+    import subprocess
+    subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
+    nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
 
 tqdm = partial(tqdm, position=0, leave=True)
 
 warnings.filterwarnings("ignore")
 
 
-tags = ['CC', 'CD', 'DT', 'EX', 'FW', 'IN', 'JJ', 'JJR', 'JJS', 'LS', 'MD', 'NN', 'NNS', 'NNP', 'NNPS', 'PDT', 'POS', 'PRP',
-        'PRP$', 'RB', 'RBR', 'RBS', 'RP', 'SYM', 'TO', 'UH', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'WDT', 'WP', 'WP$', 'WRB']
+# Universal POS tags mapping (spaCy)
+tags = ['ADJ', 'ADP', 'ADV', 'AUX', 'CCONJ', 'DET', 'INTJ', 'NOUN', 'NUM',
+        'PART', 'PRON', 'PROPN', 'PUNCT', 'SCONJ', 'SYM', 'VERB', 'X', 'SPACE']
 idx = 0
 temp = dict()
 offset = 65
@@ -57,15 +62,17 @@ tags = temp
 
 
 def to_char(x): return tags[x] if x in tags else x
-def token_and_tag(text): return [tup[1] for tup in pos_tag(tokenize(text))]
 
 
-def token_tag_join(text): return ''.join(
-    [to_char(tag) for tag in token_and_tag(text)])
+def token_tag_join(text):
+    doc = nlp(text)
+    return ''.join([to_char(token.pos_) for token in doc])
 
 
 def tag(texts):
-    return [token_tag_join(text) for text in texts]
+    # Use spaCy's pipe for parallel processing
+    docs = nlp.pipe(texts, batch_size=50, n_process=4)
+    return [''.join([to_char(token.pos_) for token in doc]) for doc in docs]
 
 
 def countSkip(skipgram, texts):
@@ -160,7 +167,5 @@ def ngram_rep(text, pos_text, features):
 
 
 def tokenize(text):
-    ret = []
-    for sent in sent_tokenize(text):
-        ret.extend(word_tokenize(sent))
-    return ret
+    doc = nlp(text)
+    return [token.text for token in doc]

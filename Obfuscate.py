@@ -129,8 +129,9 @@ def main():
 
         words = tokenize(text)
 
-        retagged = pos_tag(words)
-        retagged = [to_compressed(tup[1]) for tup in retagged]
+        # Use spaCy for POS tagging (consistent with training)
+        doc = nlp(' '.join(words))
+        retagged = [to_compressed(token.pos_) for token in doc]
 
         intervals = []
 
