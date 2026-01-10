@@ -69,10 +69,14 @@ def main():
     data['POS'] = tag(data['text'])
 
     print('------------', '\n', 'Counting and aggregating texts...')
-    number_texts = [0 for idx in range(args.authors_total)]
+    # Auto-detect the number of unique authors from the data
+    num_authors = max(max(labels), args.authors_total) + 1
+    print(f'Detected {num_authors} authors in the dataset')
 
-    texts = ['' for idx in range(args.authors_total)]
-    pos_texts = ['' for idx in range(args.authors_total)]
+    number_texts = [0 for idx in range(num_authors)]
+
+    texts = ['' for idx in range(num_authors)]
+    pos_texts = ['' for idx in range(num_authors)]
 
     total = ' '.join(texts)
     pos_total = ''.join(pos_texts)
@@ -142,7 +146,7 @@ def main():
     features = [n_grams, pos_n_grams, word_n_grams]
     pickle.dump(features, open(os.path.join(save_path, 'features.pkl'), 'wb'))
 
-    model = Model(len(X_train[0]), args.num_authors)
+    model = Model(len(X_train[0]), num_authors)
 
     loss_function = nn.CrossEntropyLoss(
         weight=torch.Tensor(number_texts).to(device))
