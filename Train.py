@@ -78,9 +78,6 @@ def main():
     texts = ['' for idx in range(num_authors)]
     pos_texts = ['' for idx in range(num_authors)]
 
-    total = ' '.join(texts)
-    pos_total = ''.join(pos_texts)
-
     for index, row in data.iterrows():
         author = int(row[0])
         number_texts[author] += 1
@@ -88,6 +85,9 @@ def main():
 
         texts[author] = ' '.join([texts[author], filtered_sentence])
         pos_texts[author] = ''.join([pos_texts[author], row['POS']])
+
+    total = ' '.join(texts)
+    pos_total = ''.join(pos_texts)
 
     print('------------', '\n', 'Preprocessing complete!')
     print('------------', '\n', 'Generating Char n-grams...')
