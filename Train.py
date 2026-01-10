@@ -87,7 +87,7 @@ def main():
         filtered_sentence = row['text'].replace('\n', '').strip()
 
         texts[author] = ' '.join([texts[author], filtered_sentence])
-        pos_texts[author] = ''.join([pos_texts[author], row[2]])
+        pos_texts[author] = ''.join([pos_texts[author], row['POS']])
 
     print('------------', '\n', 'Preprocessing complete!')
     print('------------', '\n', 'Generating Char n-grams...')
@@ -114,7 +114,7 @@ def main():
             print(f'{processed} texts processed')
 
         y.append(int(row['label']))
-        X.append(ngram_rep(row['text'], row['POS_text'], args.V,
+        X.append(ngram_rep(row['text'], row['POS'], args.V,
                  n_grams, args.V, pos_n_grams, args.V, word_n_grams))
 
         processed += 1
