@@ -1,10 +1,10 @@
-#Torch stuff
+# Torch stuff
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import Dataset
-import time 
+import time
 
 
 from captum.attr import IntegratedGradients
@@ -13,6 +13,7 @@ import os
 import gc
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 
 class Model(nn.Module):
 
@@ -24,22 +25,22 @@ class Model(nn.Module):
         self.width = 256
         self.num_classes = num_classes
         self.stack = nn.Sequential(
-            nn.Dropout(p = self.dp),
+            nn.Dropout(p=self.dp),
             nn.Linear(in_size, self.width),
             self.act,
-            nn.Dropout(p = self.dp),
+            nn.Dropout(p=self.dp),
             nn.Linear(in_size, self.width),
             self.act,
-            nn.Dropout(p = self.dp),
+            nn.Dropout(p=self.dp),
             nn.Linear(in_size, self.width),
             self.act,
-            nn.Dropout(p = self.dp),
+            nn.Dropout(p=self.dp),
             nn.Linear(self.width, self.width),
             self.act,
-            nn.Dropout(p = self.dp),
+            nn.Dropout(p=self.dp),
             nn.Linear(self.width, self.width),
             self.act,
-            nn.Dropout(p = self.dp),
+            nn.Dropout(p=self.dp),
             nn.Linear(self.width, 128),
             self.act,
             nn.Linear(128, self.num_classes)
@@ -47,6 +48,7 @@ class Model(nn.Module):
 
     def forward(self, x):
         return self.stack(x)
+
 
 class Loader(Dataset):
     def __init__(self, x, y):
@@ -59,17 +61,23 @@ class Loader(Dataset):
     def __getitem__(self, idx):
         return self.x[idx], self.y[idx]
 
+
 def train_and_eval(model, training_set, validation_set, loss_function, optimizer, scheduler, epochs=30, save_path='./', save_epoch=10):
 
     model.to(device)
 
     for epoch in range(1, epochs + 1):
-        print('------------', '\n', 'Epoch #:', epoch, '\n', 'Training:')
+        epoch_start_time = time.time()
+        print('\n' + '='*60)
+        print(f'Epoch {epoch}/{epochs}')
+        print('='*60)
+        print('Training:')
 
         with torch.set_grad_enabled(True):
 
             total = 0
             correct = 0
+            iteration = 0
 
             model.train()
 
@@ -78,12 +86,14 @@ def train_and_eval(model, training_set, validation_set, loss_function, optimizer
             all_preds = []
             all_labels = []
 
-            with tqdm(training_set, unit = "batch", bar_format = '{l_bar}{bar:20}{r_bar}{bar:-20b}') as tqdm_train:
+            with tqdm(training_set, unit="batch", bar_format='{l_bar}{bar:20}{r_bar}{bar:-20b}') as tqdm_train:
                 for training_data, labels in tqdm_train:
-                    tqdm_train.set_description(f'Epoch: {epoch}')
+                    iteration += 1
+                    tqdm_train.set_description(
+                        f'Epoch {epoch} - Iter {iteration}')
 
                     training_data = training_data.to(device)
-                    labels = torch.tensor(labels, dtype = torch.long)
+                    labels = torch.tensor(labels, dtype=torch.long)
                     labels = labels.to(device)
 
                     optimizer.zero_grad()
@@ -100,15 +110,17 @@ def train_and_eval(model, training_set, validation_set, loss_function, optimizer
                             correct += 1
                         total += 1
 
-                    tqdm_train.set_postfix(loss=loss.item(), accuracy=100.*correct/total)
+                    tqdm_train.set_postfix(
+                        loss=loss.item(), accuracy=100.*correct/total)
                     time.sleep(0.1)
 
             training_accuracy = round(correct/total, 5)
-            print('Training Accuracy: ', training_accuracy)
+            print(
+                f'Training Accuracy: {training_accuracy:.4f} ({correct}/{total})')
 
             scheduler.step()
 
-        print('------------', '\n', 'Validation:')
+        print('\nValidation:')
         model.eval()
         gc.collect()
 
@@ -117,13 +129,13 @@ def train_and_eval(model, training_set, validation_set, loss_function, optimizer
 
         with torch.no_grad():
 
-            with tqdm(validation_set, unit="batch", bar_format = '{l_bar}{bar:20}{r_bar}{bar:-20b}') as tqdm_val:
+            with tqdm(validation_set, unit="batch", bar_format='{l_bar}{bar:20}{r_bar}{bar:-20b}') as tqdm_val:
                 tqdm_val.set_description(f'Epoch: {epoch}')
                 for val_data, labels in tqdm_val:
 
                     val_data = val_data.to(device)
 
-                    labels = torch.tensor(labels, dtype = torch.long)
+                    labels = torch.tensor(labels, dtype=torch.long)
                     labels = labels.to(device)
 
                     prediction = model(val_data).squeeze(1)
@@ -137,15 +149,25 @@ def train_and_eval(model, training_set, validation_set, loss_function, optimizer
                     time.sleep(0.1)
 
             validation_accuracy = round(correct/total, 5)
-            print('Validation Accuracy: ', validation_accuracy)
+            print(
+                f'Validation Accuracy: {validation_accuracy:.4f} ({correct}/{total})')
             gc.collect()
+
+        epoch_time = time.time() - epoch_start_time
+        print('\n' + '-'*60)
+        print(f'Epoch {epoch} completed in {epoch_time:.2f}s')
+        print(
+            f'Train Acc: {training_accuracy:.4f} | Val Acc: {validation_accuracy:.4f}')
+        print('-'*60 + '\n')
 
         if epoch % save_epoch == 0:
             if not os.path.isdir(save_path):
                 os.path.makedirs(save_path)
-            torch.save(model.state_dict(), os.path.join(save_path, f'model_{epoch}.pt'))
+            torch.save(model.state_dict(), os.path.join(
+                save_path, f'model_{epoch}.pt'))
 
     return model
+
 
 def genPreds(data, tokenizer, classifier):
 
@@ -153,12 +175,13 @@ def genPreds(data, tokenizer, classifier):
 
     for idx, row in data.iterrows():
         elem = row['Text']
-        elem = tokenizer(elem, return_tensors="pt", padding="max_length", truncation=True, max_length=512).to(device)
+        elem = tokenizer(elem, return_tensors="pt", padding="max_length",
+                         truncation=True, max_length=512).to(device)
         with torch.no_grad():
             logits = classifier(**elem).logits
         preds.append(logits.argmax().item())
 
         del elem
         del logits
-        
+
     return preds
