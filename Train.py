@@ -12,31 +12,33 @@ def main():
 
     parser.add_argument(
         '--train', '-T', help='Path to Training Data', default='../Data/train.txt')
-    parser.add_argument('--authors_total', '-at',
+    parser.add_argument('--authors_total', '-at', type=int,
                         help='Number of Total Authors in Corpus', default=10)
 
     parser.add_argument('--trial_name', '-tm',
                         help='The Current Trial\'s Name (e.g. Dataset Name)')
     parser.add_argument(
-        '--test_size', '-ts', help='Proportion of data to use for testing', default=0.15)
+        '--test_size', '-ts', type=float, help='Proportion of data to use for testing', default=0.15)
 
-    parser.add_argument('--top_ngrams', '-tng',
+    parser.add_argument('--top_ngrams', '-tng', type=int,
                         help='t, The Number of top Character and POS-ngrams to Retain', default=256)
     parser.add_argument(
         '--V', '-V', help='V, the set of n-gram lengths to use', default=[1, 2, 3, 4])
 
-    parser.add_argument('--batch_size', '-bs', help='Batch Size', default=512)
-    parser.add_argument('--learning_rate', '-lr',
+    parser.add_argument('--batch_size', '-bs', type=int,
+                        help='Batch Size', default=512)
+    parser.add_argument('--learning_rate', '-lr', type=float,
                         help='Learning Rate', default=0.01)
     parser.add_argument(
-        '--epochs', '-e', help='Number of Training Epochs', default=30)
-    parser.add_argument('--weight_decay', '-wd',
+        '--epochs', '-e', type=int, help='Number of Training Epochs', default=30)
+    parser.add_argument('--weight_decay', '-wd', type=float,
                         help='Weight Decay Constant', default=0.00)
-    parser.add_argument('--momentum', '-m',
+    parser.add_argument('--momentum', '-m', type=float,
                         help='Momentum Constant', default=0.90)
-    parser.add_argument('--step', '-s', help='Scheduler Step Size', default=3)
+    parser.add_argument('--step', '-s', type=int,
+                        help='Scheduler Step Size', default=3)
     parser.add_argument(
-        '--gamma', '-g', help='Scheduler Gamma Constant', default=0.30)
+        '--gamma', '-g', type=float, help='Scheduler Gamma Constant', default=0.30)
 
     args = parser.parse_args()
 
