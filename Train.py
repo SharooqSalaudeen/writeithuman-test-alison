@@ -48,7 +48,8 @@ def main():
     os.makedirs(save_path)
 
     with open(args.train, 'r') as reader:
-        lines = [line.partition(' ') for line in reader.readlines()]
+        lines = [line.partition(' ')
+                 for line in reader.readlines() if line.strip()]
         labels = [int(line[0]) for line in lines]
         texts = [line[2] for line in lines]
 
