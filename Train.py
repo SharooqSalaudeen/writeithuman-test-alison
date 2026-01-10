@@ -23,7 +23,7 @@ def main():
     parser.add_argument('--top_ngrams', '-tng', type=int,
                         help='t, The Number of top Character and POS-ngrams to Retain', default=256)
     parser.add_argument('--max_chars_per_author', '-mca', type=int,
-                        help='Maximum characters per author for n-gram extraction (0 = unlimited)', default=500000)
+                        help='Maximum characters per author for n-gram extraction (0 = unlimited)', default=200000)
     parser.add_argument(
         '--V', '-V', help='V, the set of n-gram lengths to use', default=[1, 2, 3, 4])
 
@@ -111,9 +111,13 @@ def main():
         n, args.top_ngrams, pos_total) for n in [1, 2, 3, 4]]
 
     print('------------', '\n', 'Generating Word n-grams...')
+    print('Tokenizing text (this may take a moment)...')
+
+    # Tokenize once and reuse to avoid processing 5M+ chars multiple times
+    all_tokens = tokenize(total, show_progress=True)
 
     word_n_grams = [return_best_word_n_grams(
-        n, args.top_ngrams, tokenize(total)) for n in [1, 2, 3, 4]]
+        n, args.top_ngrams, all_tokens) for n in [1, 2, 3, 4]]
 
     print('------------', '\n', 'Generating data...')
     X = []

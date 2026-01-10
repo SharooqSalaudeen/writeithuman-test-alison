@@ -169,6 +169,11 @@ def ngram_rep(text, pos_text, features):
     return to_ret
 
 
-def tokenize(text):
+def tokenize(text, show_progress=False):
+    """Tokenize text using spaCy. For very large texts, this may take time."""
+    if show_progress and len(text) > 1000000:
+        print(f'  Processing {len(text):,} characters...')
     doc = nlp(text)
+    if show_progress and len(text) > 1000000:
+        print(f'  Generated {len(doc):,} tokens')
     return [token.text for token in doc]
