@@ -15,10 +15,10 @@ def main():
     parser.add_argument('--authors_total', '-at',
                         help='Number of Total Authors in Corpus', default=10)
 
-    parser.add_argument('--trial_name', 'tm',
+    parser.add_argument('--trial_name', '-tm',
                         help='The Current Trial\'s Name (e.g. Dataset Name)')
     parser.add_argument(
-        '--test_size', 'ts', help='Proportion of data to use for testing', default=0.15)
+        '--test_size', '-ts', help='Proportion of data to use for testing', default=0.15)
 
     parser.add_argument('--top_ngrams', '-tng',
                         help='t, The Number of top Character and POS-ngrams to Retain', default=256)
