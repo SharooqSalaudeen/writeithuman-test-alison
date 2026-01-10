@@ -47,7 +47,7 @@ def main():
 
     os.makedirs(save_path)
 
-    with open(parser.train, 'r') as reader:
+    with open(args.train, 'r') as reader:
         lines = [line.partition(' ') for line in reader.readlines()]
         labels = [int(line[0]) for line in lines]
         texts = [line[2] for line in lines]
