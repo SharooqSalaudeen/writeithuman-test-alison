@@ -1,3 +1,18 @@
+import argparse
+from itertools import chain
+import warnings
+from tqdm import tqdm
+from functools import partial
+from sklearn import preprocessing
+from sklearn.metrics import accuracy_score
+from sklearn.metrics.pairwise import cosine_similarity
+import sklearn
+import heapq
+from collections import Counter
+from random import random
+import gc
+from nltk.corpus import stopwords
+from string import punctuation
 import numpy as np
 import pandas as pd
 import datetime
@@ -17,36 +32,18 @@ from nltk import pos_tag
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.util import ngrams
 nltk.download('punkt')
+nltk.download('punkt_tab')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('stopwords')
-from string import punctuation
-from nltk.corpus import stopwords
 
-import gc
-from random import random
-import time
 
-from collections import Counter
-import heapq
-
-import sklearn
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.metrics import accuracy_score
-from sklearn import preprocessing
-
-from functools import partial
-from tqdm import tqdm
 tqdm = partial(tqdm, position=0, leave=True)
 
-import warnings
 warnings.filterwarnings("ignore")
 
-from itertools import chain
-import copy
 
-import argparse
-
-tags = ['CC', 'CD', 'DT', 'EX', 'FW', 'IN', 'JJ', 'JJR', 'JJS', 'LS', 'MD', 'NN', 'NNS', 'NNP', 'NNPS', 'PDT', 'POS', 'PRP', 'PRP$', 'RB', 'RBR', 'RBS', 'RP', 'SYM', 'TO', 'UH', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'WDT', 'WP', 'WP$', 'WRB']
+tags = ['CC', 'CD', 'DT', 'EX', 'FW', 'IN', 'JJ', 'JJR', 'JJS', 'LS', 'MD', 'NN', 'NNS', 'NNP', 'NNPS', 'PDT', 'POS', 'PRP',
+        'PRP$', 'RB', 'RBR', 'RBS', 'RP', 'SYM', 'TO', 'UH', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'WDT', 'WP', 'WP$', 'WRB']
 idx = 0
 temp = dict()
 offset = 65
@@ -57,12 +54,18 @@ for tag in tags:
     idx += 1
 tags = temp
 
-to_char = lambda x: tags[x] if x in tags else x
-token_and_tag = lambda text: [tup[1] for tup in pos_tag(tokenize(text))]
-token_tag_join = lambda text: ''.join([to_char(tag) for tag in token_and_tag(text)])
+
+def to_char(x): return tags[x] if x in tags else x
+def token_and_tag(text): return [tup[1] for tup in pos_tag(tokenize(text))]
+
+
+def token_tag_join(text): return ''.join(
+    [to_char(tag) for tag in token_and_tag(text)])
+
 
 def tag(texts):
     return [token_tag_join(text) for text in texts]
+
 
 def countSkip(skipgram, texts):
 
@@ -88,6 +91,7 @@ def countSkip(skipgram, texts):
 
     return total
 
+
 def get_skipgrams(text, n, k):
     if n > 1:
         ans = [skipgram for skipgram in skipgrams(text, n, k)]
@@ -95,12 +99,14 @@ def get_skipgrams(text, n, k):
         ans = ngrams(text, n)
     return ans
 
+
 def return_best_pos_n_grams(n, L, pos_texts):
     n_grams = ngrams(pos_texts, n)
 
     data = dict(Counter(n_grams))
     list_ngrams = heapq.nlargest(L, data.keys(), key=lambda k: data[k])
     return list_ngrams
+
 
 def return_best_word_n_grams(n, L, tokens):
 
@@ -110,6 +116,7 @@ def return_best_word_n_grams(n, L, tokens):
     list_ngrams = heapq.nlargest(L, data.keys(), key=lambda k: data[k])
     return list_ngrams
 
+
 def return_best_n_grams(n, L, text):
 
     n_grams = ngrams(text, n)
@@ -117,6 +124,7 @@ def return_best_n_grams(n, L, text):
     data = dict(Counter(n_grams))
     list_ngrams = heapq.nlargest(L, data.keys(), key=lambda k: data[k])
     return list_ngrams
+
 
 def ngram_rep(text, pos_text, features):
 
@@ -127,13 +135,16 @@ def ngram_rep(text, pos_text, features):
         num_ngrams = len(Counter(ngrams(text, len(features[0][idx][0]))))
 
         for n_gram in features[0][idx]:
-            to_ret.append(text.count(''.join(n_gram)) / num_ngrams if num_ngrams != 0 else 0)
+            to_ret.append(text.count(''.join(n_gram)) /
+                          num_ngrams if num_ngrams != 0 else 0)
 
     for idx in range(len(features[1])):
-        num_pos_ngrams = len(Counter(ngrams(pos_text, len(features[1][idx][0]))))
+        num_pos_ngrams = len(
+            Counter(ngrams(pos_text, len(features[1][idx][0]))))
 
         for pos_n_gram in features[1][idx]:
-            to_ret.append(pos_text.count(''.join(pos_n_gram)) / num_pos_ngrams if num_pos_ngrams != 0 else 0)
+            to_ret.append(pos_text.count(''.join(pos_n_gram)) /
+                          num_pos_ngrams if num_pos_ngrams != 0 else 0)
 
     words = tokenize(text)
     spaced_text = ' '.join(words)
@@ -141,7 +152,8 @@ def ngram_rep(text, pos_text, features):
         num_word_ngrams = len(Counter(ngrams(words, len(features[2][idx][0]))))
 
         for word_ngram in features[2][idx]:
-            to_ret.append(spaced_text.count(' '.join(word_ngram)) / num_word_ngrams if num_word_ngrams != 0 else 0)
+            to_ret.append(spaced_text.count(' '.join(word_ngram)) /
+                          num_word_ngrams if num_word_ngrams != 0 else 0)
 
     return to_ret
 
