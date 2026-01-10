@@ -50,8 +50,16 @@ def main():
     with open(args.train, 'r') as reader:
         lines = [line.partition(' ')
                  for line in reader.readlines() if line.strip()]
-        labels = [int(line[0]) for line in lines]
-        texts = [line[2] for line in lines]
+        labels = []
+        texts = []
+
+        for line in lines:
+            try:
+                labels.append(int(line[0]))
+                texts.append(line[2])
+            except ValueError:
+                print(f"Skipping malformed line: {line[0][:50]}...")
+                continue
 
         data = pd.DataFrame(data={'label': labels, 'text': texts})
 
