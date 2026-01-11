@@ -8,9 +8,20 @@ def predict_author(text, model_dir, authors_total):
 
     print('Loading model and features...')
 
-    # Load saved features and scaler
+    # Load saved features
     features = pickle.load(open(os.path.join(model_dir, 'features.pkl'), 'rb'))
-    Scaler = pickle.load(open(os.path.join(model_dir, 'Scaler.pkl'), 'rb'))
+
+    # Load or create scaler
+    scaler_path = os.path.join(model_dir, 'Scaler.pkl')
+    if os.path.exists(scaler_path):
+        Scaler = pickle.load(open(scaler_path, 'rb'))
+    else:
+        # Create scaler from saved training data
+        print('Scaler.pkl not found, creating from X_train.pkl...')
+        X_train = pickle.load(
+            open(os.path.join(model_dir, 'X_train.pkl'), 'rb'))
+        Scaler = sklearn.preprocessing.StandardScaler()
+        Scaler.fit(X_train)
 
     # Load model
     model = Model(len(features[0]) * 4 + len(features[1])
