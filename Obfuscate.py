@@ -29,11 +29,17 @@ def main():
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--texts', '-t', help='Path to texts for obfuscation')
+    # Input options - mutually exclusive
+    input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument(
+        '--text', '-t', help='Direct text input for obfuscation')
+    input_group.add_argument(
+        '--file', '-f', help='Path to file containing texts for obfuscation')
+
     parser.add_argument('--authors_total', '-at',
                         help='Number of Total Authors in Corpus', default=10)
     parser.add_argument(
-        '--dir', '-f', help='Path to the directory containing the trained model')
+        '--dir', '-d', help='Path to the directory containing the trained model', required=True)
     parser.add_argument('--trial_name', '-tm',
                         help='The Current Trial\'s Name (e.g. Dataset Name)', default='')
 
@@ -57,12 +63,23 @@ def main():
     os.makedirs(save_path)
 
     print('------------', '\n', 'Loading Data...')
-    with open(args.dir, 'r') as reader:
-        lines = [line.partition(' ') for line in reader.readlines()]
+
+    # Load data from either text input or file
+    if args.text:
+        # Direct text input - assume author label 0 for single text
         data = pd.DataFrame(data={
-            'text': [line[2] for line in lines],
-            'label': [int(line[0]) for line in lines]
+            'text': [args.text],
+            'label': [0]
         })
+        print(f'Loaded direct text input ({len(args.text)} characters)')
+    else:
+        # File input
+        with open(args.file, 'r', encoding='utf-8', errors='ignore') as reader:
+            lines = [line.partition(' ') for line in reader.readlines()]\n            data = pd.DataFrame(data={
+                'text': [line[2] for line in lines],
+                'label': [int(line[0]) for line in lines]
+            })
+        print(f'Loaded {len(data)} texts from file')
 
     features = np.array(pickle.load(
         open(os.path.join(args.dir, 'features.pkl'), "rb")))
