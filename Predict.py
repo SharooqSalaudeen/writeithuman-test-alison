@@ -30,16 +30,17 @@ def predict_author(text, model_dir, authors_total):
             open(os.path.join(model_dir, 'X_train.pkl'), 'rb'))
     input_size = X_train.shape[1]
 
-    # Get actual number of authors from training data
-    y_train = pickle.load(open(os.path.join(model_dir, 'y_train.pkl'), 'rb'))
-    actual_authors = len(np.unique(y_train))
+    # Get actual number of authors from model checkpoint
+    checkpoint = torch.load(os.path.join(
+        model_dir, 'model.pt'), map_location=device)
+    # The output layer is 'stack.18.weight' with shape [num_authors, 128]
+    actual_authors = checkpoint['stack.18.weight'].shape[0]
 
     print(f'Model info: {input_size} features, {actual_authors} authors')
 
     # Load model
     model = Model(input_size, actual_authors)
-    model.load_state_dict(torch.load(os.path.join(
-        model_dir, 'model.pt'), map_location=device))
+    model.load_state_dict(checkpoint)
     model.eval()
     model.to(device)
 
