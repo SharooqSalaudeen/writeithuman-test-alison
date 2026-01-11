@@ -8,3 +8,6 @@ torchvision
 matplotlib
 transformers
 tqdm
+textattack
+sentence-transformers
+spacy
