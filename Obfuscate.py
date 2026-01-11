@@ -75,7 +75,8 @@ def main():
     else:
         # File input
         with open(args.file, 'r', encoding='utf-8', errors='ignore') as reader:
-            lines = [line.partition(' ') for line in reader.readlines()]\n            data = pd.DataFrame(data={
+            lines = [line.partition(' ') for line in reader.readlines()]
+            data = pd.DataFrame(data={
                 'text': [line[2] for line in lines],
                 'label': [int(line[0]) for line in lines]
             })
