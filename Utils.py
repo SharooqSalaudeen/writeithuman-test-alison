@@ -15,7 +15,7 @@ from nltk.corpus import stopwords
 from string import punctuation
 import numpy as np
 import pandas as pd
-import datetime
+from datetime import datetime
 
 import copy
 import csv
