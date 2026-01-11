@@ -15,6 +15,7 @@ def predict_author(text, model_dir, authors_total):
     scaler_path = os.path.join(model_dir, 'Scaler.pkl')
     if os.path.exists(scaler_path):
         Scaler = pickle.load(open(scaler_path, 'rb'))
+        X_train = None
     else:
         # Create scaler from saved training data
         print('Scaler.pkl not found, creating from X_train.pkl...')
@@ -23,9 +24,20 @@ def predict_author(text, model_dir, authors_total):
         Scaler = sklearn.preprocessing.StandardScaler()
         Scaler.fit(X_train)
 
+    # Calculate correct input size from actual training data
+    if X_train is None:
+        X_train = pickle.load(
+            open(os.path.join(model_dir, 'X_train.pkl'), 'rb'))
+    input_size = X_train.shape[1]
+
+    # Get actual number of authors from training data
+    y_train = pickle.load(open(os.path.join(model_dir, 'y_train.pkl'), 'rb'))
+    actual_authors = len(np.unique(y_train))
+
+    print(f'Model info: {input_size} features, {actual_authors} authors')
+
     # Load model
-    model = Model(len(features[0]) * 4 + len(features[1])
-                  * 4 + len(features[2]) * 4, authors_total)
+    model = Model(input_size, actual_authors)
     model.load_state_dict(torch.load(os.path.join(
         model_dir, 'model.pt'), map_location=device))
     model.eval()
