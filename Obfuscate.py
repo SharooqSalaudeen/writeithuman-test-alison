@@ -82,26 +82,20 @@ def main():
             })
         print(f'Loaded {len(data)} texts from file')
 
-    # Load features as object array to handle different sized arrays
+    # Load features - keep structure, don't convert to numpy array
     features = pickle.load(open(os.path.join(args.dir, 'features.pkl'), "rb"))
     Scaler = pickle.load(open(os.path.join(args.dir, 'Scaler.pkl'), "rb"))
 
     # Get sizes for character and POS features
-    num_char = len(features[0]) if hasattr(
-        features[0], '__len__') else features[0].size
-    num_pos = len(features[1]) if hasattr(
-        features[1], '__len__') else features[1].size
+    num_char = len(features[0])
+    num_pos = len(features[1])
 
-    # Flatten features to list
+    # Create flattened version for pattern matching later
     features_flat = []
     for feature_group in features:
-        if hasattr(feature_group, 'tolist'):
-            features_flat.extend(feature_group.tolist())
-        elif hasattr(feature_group, '__iter__'):
-            features_flat.extend(list(feature_group))
-        else:
-            features_flat.append(feature_group)
-    features = features_flat
+        for feature_list in feature_group:
+            for feature in feature_list:
+                features_flat.append(''.join(feature))
 
     ngram_reps = []
     for idx, row in data.iterrows():
@@ -146,13 +140,13 @@ def main():
         text = row['text']
         attribution = row['attribution']
 
-        mult = [args.c ** len(feature) for feature in features]
+        mult = [args.c ** len(feature) for feature in features_flat]
         attribution = np.multiply(attribution, mult)
 
-        ranked_indexes = np.argsort(np.array(ranked_indexes))
+        ranked_indexes = np.argsort(attribution)
         ranked_indexes = [elem for elem in ranked_indexes if isValid(elem)]
         ranked_indexes.reverse()
-        to_replace = [features[elem] for elem in ranked_indexes]
+        to_replace = [features_flat[elem] for elem in ranked_indexes]
 
         to_replace = [replace for replace in to_replace if len(
             replace) > args.min_length]
