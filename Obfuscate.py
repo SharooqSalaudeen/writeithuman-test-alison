@@ -82,13 +82,26 @@ def main():
             })
         print(f'Loaded {len(data)} texts from file')
 
-    features = np.array(pickle.load(
-        open(os.path.join(args.dir, 'features.pkl'), "rb")))
-    Scaler = np.array(pickle.load(
-        open(os.path.join(args.dir, 'Scaler.pkl'), "rb")))
-    num_char = features[0].size
-    num_pos = features[1].size
-    features = features.flatten().tolist()
+    # Load features as object array to handle different sized arrays
+    features = pickle.load(open(os.path.join(args.dir, 'features.pkl'), "rb"))
+    Scaler = pickle.load(open(os.path.join(args.dir, 'Scaler.pkl'), "rb"))
+
+    # Get sizes for character and POS features
+    num_char = len(features[0]) if hasattr(
+        features[0], '__len__') else features[0].size
+    num_pos = len(features[1]) if hasattr(
+        features[1], '__len__') else features[1].size
+
+    # Flatten features to list
+    features_flat = []
+    for feature_group in features:
+        if hasattr(feature_group, 'tolist'):
+            features_flat.extend(feature_group.tolist())
+        elif hasattr(feature_group, '__iter__'):
+            features_flat.extend(list(feature_group))
+        else:
+            features_flat.append(feature_group)
+    features = features_flat
 
     ngram_reps = []
     for idx, row in data.iterrows():
