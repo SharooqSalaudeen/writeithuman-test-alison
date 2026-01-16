@@ -97,9 +97,16 @@ def main():
             for feature in feature_list:
                 features_flat.append(''.join(feature))
 
+    # Generate POS tags and feature representations
+    print('Generating POS tags and features...')
+    texts = data['text'].tolist()
+    pos_texts = tag(texts)
+
     ngram_reps = []
     for idx, row in data.iterrows():
-        ngram_reps.append(ngram_rep(row[0], row[1], features))
+        text = row['text']
+        pos_text = pos_texts[idx]
+        ngram_reps.append(ngram_rep(text, pos_text, features))
     ngram_reps = Scaler.fit_transform(np.array(ngram_reps))
 
     ig_set = torch.utils.data.DataLoader(
